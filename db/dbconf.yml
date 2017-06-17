@@ -1,0 +1,7 @@
+development:
+  driver: postgres
+  open: user=rtravitz dbname=culture_knights sslmode=disable
+
+test:
+  driver: postgres
+  open: user=rtravitz dbname=culture_knights_test sslmode=disable
