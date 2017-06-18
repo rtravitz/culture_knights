@@ -1,9 +1,9 @@
-package main_test
+package main
 
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/rtravitz/culture_knights"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,23 +12,23 @@ import (
 	"testing"
 )
 
-var a main.App
+var a App
 
 func TestMain(m *testing.M) {
-	a = main.App{}
+	a = App{}
 	a.Initialize(os.Getenv("CULTURE_DB_TEST"))
 
 	ensureTableExists()
 
 	code := m.Run()
 
-	clearTable()
+	clearTable("users")
 
 	os.Exit(code)
 }
 
 func TestEmptyTable(t *testing.T) {
-	clearTable()
+	clearTable("users")
 	req, _ := http.NewRequest("GET", "/users", nil)
 	response := executeRequest(req)
 
@@ -40,7 +40,7 @@ func TestEmptyTable(t *testing.T) {
 }
 
 func TestGetNonExistentUser(t *testing.T) {
-	clearTable()
+	clearTable("users")
 
 	req, _ := http.NewRequest("GET", "/users/11", nil)
 	response := executeRequest(req)
@@ -55,7 +55,7 @@ func TestGetNonExistentUser(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	clearTable()
+	clearTable("users")
 
 	payload := []byte(`{"name":"Sullivan Julius"}`)
 	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
@@ -74,7 +74,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestGetProduct(t *testing.T) {
-	clearTable()
+	clearTable("users")
 	addUsers(1)
 
 	req, _ := http.NewRequest("GET", "/users/1", nil)
@@ -84,7 +84,7 @@ func TestGetProduct(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	clearTable()
+	clearTable("users")
 	addUsers(1)
 
 	req, _ := http.NewRequest("GET", "/users/1", nil)
@@ -113,7 +113,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	clearTable()
+	clearTable("users")
 	addUsers(1)
 
 	req, _ := http.NewRequest("GET", "/users/1", nil)
@@ -157,8 +157,8 @@ func ensureTableExists() {
 	}
 }
 
-func clearTable() {
-	a.DB.Exec("DELETE FROM users")
+func clearTable(table string) {
+	a.DB.Exec(fmt.Sprintf("DELETE FROM %s", table))
 	a.DB.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
 }
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/rtravitz/culture_knights/books"
 )
 
 type App struct {
@@ -38,6 +39,27 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/users", a.createUser).Methods("POST")
 	a.Router.HandleFunc("/users/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
 	a.Router.HandleFunc("/users/{id:[0-9]+}", a.updateUser).Methods("PUT")
+	a.Router.HandleFunc("/books", a.createBook).Methods("POST")
+}
+
+func (a *App) createBook(w http.ResponseWriter, r *http.Request) {
+	service := books.Service{os.Getenv("BOOKS_KEY"), "https://www.googleapis.com/books/v1/"}
+	q := r.FormValue("q")
+	if q == "" {
+		respondWithError(w, http.StatusBadRequest, "Please send a query")
+	}
+	book, err := service.FindBook(q)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err := book.CreateBook(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, book)
 }
 
 func (a *App) getUsers(w http.ResponseWriter, r *http.Request) {
