@@ -32,7 +32,11 @@ type bookResponse struct {
 	} `json:"items"`
 }
 
-func (service Service) FindBook(query string) (Book, error) {
+func NewService(key, base string) Service {
+	return Service{key, base}
+}
+
+func (service Service) FindBook(query string) (*Book, error) {
 	u, err := url.Parse(service.Base + "volumes")
 	if err != nil {
 		log.Fatal(err)
@@ -43,7 +47,7 @@ func (service Service) FindBook(query string) (Book, error) {
 	u.RawQuery = q.Encode()
 	resp, err := http.Get(u.String())
 	if err != nil {
-		return Book{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	br := new(bookResponse)
@@ -60,5 +64,5 @@ func (service Service) FindBook(query string) (Book, error) {
 		Link:          vol.CanonicalVolumeLink,
 	}
 
-	return book, nil
+	return &book, nil
 }

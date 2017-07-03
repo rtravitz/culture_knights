@@ -14,8 +14,9 @@ import (
 )
 
 type App struct {
-	Router *mux.Router
-	DB     *sql.DB
+	Router      *mux.Router
+	DB          *sql.DB
+	bookService books.Service
 }
 
 func (a *App) Initialize(connectionString string) {
@@ -27,6 +28,7 @@ func (a *App) Initialize(connectionString string) {
 
 	a.Router = mux.NewRouter()
 	a.initializeRoutes()
+	a.bookService = books.NewService(os.Getenv("BOOKS_KEY"), "https://www.googleapis.com/books/v1/")
 }
 
 func (a *App) Run(addr string) {
@@ -40,21 +42,31 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/users/{id:[0-9]+}", a.deleteUser).Methods("DELETE")
 	a.Router.HandleFunc("/users/{id:[0-9]+}", a.updateUser).Methods("PUT")
 	a.Router.HandleFunc("/books", a.createBook).Methods("POST")
+	a.Router.HandleFunc("/books", a.getBooks).Methods("GET")
 }
 
-func (a *App) createBook(w http.ResponseWriter, r *http.Request) {
-	service := books.Service{os.Getenv("BOOKS_KEY"), "https://www.googleapis.com/books/v1/"}
-	q := r.FormValue("q")
-	if q == "" {
-		respondWithError(w, http.StatusBadRequest, "Please send a query")
-	}
-	book, err := service.FindBook(q)
+func (a *App) getBooks(w http.ResponseWriter, r *http.Request) {
+	books, err := books.All(a.DB)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if err := book.CreateBook(a.DB); err != nil {
+	respondWithJSON(w, http.StatusOK, books)
+}
+
+func (a *App) createBook(w http.ResponseWriter, r *http.Request) {
+	q := r.FormValue("q")
+	if q == "" {
+		respondWithError(w, http.StatusBadRequest, "Please send a query")
+	}
+	book, err := a.bookService.FindBook(q)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err := book.Create(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -172,6 +184,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(code)
 	w.Write(response)
 }
