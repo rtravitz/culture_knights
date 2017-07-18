@@ -1,12 +1,7 @@
 package main
 
-import (
-	"os"
-)
+import "github.com/rtravitz/culture_knights/server"
 
 func main() {
-	a := App{}
-	a.Initialize(os.Getenv("CULTURE_DB"))
-
-	a.Run(":" + os.Getenv("PORT"))
+	server.StartServer()
 }
