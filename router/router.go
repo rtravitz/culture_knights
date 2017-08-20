@@ -22,6 +22,9 @@ func NewRouter() *chi.Mux {
 }
 
 func initializeRoutes(r *chi.Mux, db *db.DB) {
+	bookService := books.BookService{Key: os.Getenv("BOOKS_KEY"), Base: "https://www.googleapis.com/books/v1/"}
+	bookEnv := &books.Env{DB: db, Service: bookService}
+
 	r.Route("/users", func(r chi.Router) {
 		r.Get("/", users.GetUsersHandler(db))
 		r.Post("/", users.CreateUser(db))
@@ -31,7 +34,7 @@ func initializeRoutes(r *chi.Mux, db *db.DB) {
 	})
 
 	r.Route("/books", func(r chi.Router) {
-		r.Post("/", books.CreateBook(db))
-		r.Get("/", books.GetBooks(db))
+		r.Post("/", bookEnv.CreateBook)
+		r.Get("/", bookEnv.GetBooks)
 	})
 }

@@ -11,12 +11,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var recorder *httptest.ResponseRecorder
+var (
+	recorder *httptest.ResponseRecorder
+	env      *Env
+)
 
 var _ = Describe("BookHandlers", func() {
 	BeforeEach(func() {
 		populateBooks()
 		recorder = httptest.NewRecorder()
+		mockService := &MockService{}
+		env = &Env{DB: testDB, Service: mockService}
 	})
 
 	AfterEach(func() {
@@ -27,7 +32,7 @@ var _ = Describe("BookHandlers", func() {
 	Context("GetBooks", func() {
 		It("Returns all books", func() {
 			req, _ := http.NewRequest("GET", "/books", nil)
-			handler := GetBooks(testDB)
+			handler := http.HandlerFunc(env.GetBooks)
 			handler.ServeHTTP(recorder, req)
 
 			var result []Book
@@ -41,9 +46,38 @@ var _ = Describe("BookHandlers", func() {
 
 	Context("CreateBook", func() {
 		It("Creates and returns a book", func() {
+			req, _ := http.NewRequest("POST", `/books?q="Devil in a Blue Dress`, nil)
+			handler := http.HandlerFunc(env.CreateBook)
+			handler.ServeHTTP(recorder, req)
+
+			var result Book
+			json.NewDecoder(recorder.Body).Decode(&result)
+
+			Expect(recorder.Code).To(Equal(200))
+			Expect(result.Title).To(Equal("Devil in a Blue Dress"))
+			Expect(result.Author).To(Equal("Walter Mosley"))
+		})
+
+		It("Returns a status bad request if no query is sent", func() {
+			req, _ := http.NewRequest("POST", `/books`, nil)
+			handler := http.HandlerFunc(env.CreateBook)
+			handler.ServeHTTP(recorder, req)
+
+			var result map[string]string
+			json.NewDecoder(recorder.Body).Decode(&result)
+
+			Expect(recorder.Code).To(Equal(400))
+			Expect(result["error"]).To(Equal("Please send a query"))
 		})
 	})
 })
+
+type MockService struct{}
+
+func (mockService MockService) FindBook(query string) (*Book, error) {
+	book := oneMockBook()
+	return &book, nil
+}
 
 func populateBooks() {
 	books := []Book{

@@ -7,7 +7,11 @@ import (
 	"net/url"
 )
 
-type Service struct {
+type Service interface {
+	FindBook(string) (*Book, error)
+}
+
+type BookService struct {
 	Key  string
 	Base string
 }
@@ -32,11 +36,7 @@ type bookResponse struct {
 	} `json:"items"`
 }
 
-func NewService(key, base string) Service {
-	return Service{key, base}
-}
-
-func (service Service) FindBook(query string) (*Book, error) {
+func (service BookService) FindBook(query string) (*Book, error) {
 	u, err := url.Parse(service.Base + "volumes")
 	if err != nil {
 		log.Fatal(err)
