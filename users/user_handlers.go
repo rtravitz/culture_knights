@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
+	"github.com/rtravitz/culture_knights/respond"
 )
 
 func GetUsersHandler(db *sql.DB) http.HandlerFunc {
@@ -23,20 +24,20 @@ func GetUsersHandler(db *sql.DB) http.HandlerFunc {
 
 		users, err := getUsers(db, start, count)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respondWithJSON(w, http.StatusOK, users)
+		respond.WithJSON(w, http.StatusOK, users)
 	}
 }
 
 func GetUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		urlID := chi.URLParam(r, "id")
+		id, err := strconv.Atoi(urlID)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+			respond.WithError(w, http.StatusBadRequest, "Invalid user ID")
 			return
 		}
 
@@ -44,14 +45,14 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 		if err := u.getUser(db); err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				respondWithError(w, http.StatusNotFound, "User not found")
+				respond.WithError(w, http.StatusNotFound, "User not found")
 			default:
-				respondWithError(w, http.StatusInternalServerError, err.Error())
+				respond.WithError(w, http.StatusInternalServerError, err.Error())
 			}
 			return
 		}
 
-		respondWithJSON(w, http.StatusOK, u)
+		respond.WithJSON(w, http.StatusOK, u)
 	}
 }
 
@@ -60,17 +61,17 @@ func CreateUser(db *sql.DB) http.HandlerFunc {
 		var u User
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&u); err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		defer r.Body.Close()
 
 		if err := u.createUser(db); err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respondWithJSON(w, http.StatusCreated, u)
+		respond.WithJSON(w, http.StatusCreated, u)
 	}
 }
 
@@ -78,46 +79,45 @@ func UpdateUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u User
 
-		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		urlID := chi.URLParam(r, "id")
+		id, err := strconv.Atoi(urlID)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid User ID")
+			respond.WithError(w, http.StatusBadRequest, "Invalid User ID")
 			return
 		}
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&u); err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		defer r.Body.Close()
 		u.ID = id
 
 		if err = u.updateUser(db); err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respondWithJSON(w, http.StatusOK, u)
+		respond.WithJSON(w, http.StatusOK, u)
 	}
 }
 
 func DeleteUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		urlID := chi.URLParam(r, "id")
+		id, err := strconv.Atoi(urlID)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid User ID")
+			respond.WithError(w, http.StatusBadRequest, "Invalid User ID")
 			return
 		}
 
 		u := User{ID: id}
 		if err := u.deleteUser(db); err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+		respond.WithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 	}
 }
-
