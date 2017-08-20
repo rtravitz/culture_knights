@@ -1,14 +1,14 @@
 package books
 
 import (
-	"database/sql"
 	"net/http"
 	"os"
 
+	"github.com/rtravitz/culture_knights/db"
 	"github.com/rtravitz/culture_knights/respond"
 )
 
-func GetBooks(db *sql.DB) http.HandlerFunc {
+func GetBooks(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		books, err := All(db)
 		if err != nil {
@@ -20,7 +20,7 @@ func GetBooks(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func CreateBook(db *sql.DB) http.HandlerFunc {
+func CreateBook(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.FormValue("q")
 		if q == "" {

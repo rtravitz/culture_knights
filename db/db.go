@@ -6,10 +6,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func OpenDB(connectionString string) (*sql.DB, error) {
+type DB struct {
+	*sql.DB
+}
+
+func New(connectionString string) (*DB, error) {
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return &DB{db}, nil
 }

@@ -1,6 +1,6 @@
 package books
 
-import "database/sql"
+import "github.com/rtravitz/culture_knights/db"
 
 type Book struct {
 	ID            int     `json:"id"`
@@ -14,7 +14,7 @@ type Book struct {
 	Link          string  `json:"link"`
 }
 
-func (b *Book) Create(db *sql.DB) error {
+func (b *Book) Create(db *db.DB) error {
 	err := db.QueryRow("INSERT INTO books(title, author, publishedDate, pageCount, averageRating, thumbnail, description, link) "+
 		"Values($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
 		b.Title, b.Author, b.PublishedDate, b.PageCount, b.AverageRating, b.Thumbnail, b.Description, b.Link).Scan(&b.ID)
@@ -25,7 +25,7 @@ func (b *Book) Create(db *sql.DB) error {
 	return nil
 }
 
-func All(db *sql.DB) ([]Book, error) {
+func All(db *db.DB) ([]Book, error) {
 	rows, err := db.Query("SELECT * FROM books")
 
 	if err != nil {

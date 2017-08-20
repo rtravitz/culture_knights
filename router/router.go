@@ -1,7 +1,6 @@
 package router
 
 import (
-	"database/sql"
 	"log"
 	"os"
 
@@ -12,7 +11,7 @@ import (
 )
 
 func NewRouter() *chi.Mux {
-	database, err := db.OpenDB(os.Getenv("CULTURE_DB"))
+	database, err := db.New(os.Getenv("CULTURE_DB"))
 	if err != nil {
 		log.Fatal("Could not connect to database: ", err.Error())
 	}
@@ -22,7 +21,7 @@ func NewRouter() *chi.Mux {
 	return r
 }
 
-func initializeRoutes(r *chi.Mux, db *sql.DB) {
+func initializeRoutes(r *chi.Mux, db *db.DB) {
 	r.Route("/users", func(r chi.Router) {
 		r.Get("/", users.GetUsersHandler(db))
 		r.Post("/", users.CreateUser(db))
