@@ -7,10 +7,11 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/rtravitz/culture_knights/db"
 	"github.com/rtravitz/culture_knights/respond"
 )
 
-func GetUsersHandler(db *sql.DB) http.HandlerFunc {
+func GetUsersHandler(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		count, _ := strconv.Atoi(r.FormValue("count"))
 		start, _ := strconv.Atoi(r.FormValue("start"))
@@ -22,7 +23,7 @@ func GetUsersHandler(db *sql.DB) http.HandlerFunc {
 			start = 0
 		}
 
-		users, err := getUsers(db, start, count)
+		users, err := GetUsers(db, start, count)
 		if err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -32,7 +33,7 @@ func GetUsersHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func GetUser(db *sql.DB) http.HandlerFunc {
+func GetUser(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlID := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(urlID)
@@ -41,8 +42,8 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		u := User{ID: id}
-		if err := u.getUser(db); err != nil {
+		user := User{ID: id}
+		if err := user.Get(db); err != nil {
 			switch err {
 			case sql.ErrNoRows:
 				respond.WithError(w, http.StatusNotFound, "User not found")
@@ -52,32 +53,32 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		respond.WithJSON(w, http.StatusOK, u)
+		respond.WithJSON(w, http.StatusOK, user)
 	}
 }
 
-func CreateUser(db *sql.DB) http.HandlerFunc {
+func CreateUser(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
+		var user User
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&u); err != nil {
+		if err := decoder.Decode(&user); err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		defer r.Body.Close()
 
-		if err := u.createUser(db); err != nil {
+		if err := user.Create(db); err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respond.WithJSON(w, http.StatusCreated, u)
+		respond.WithJSON(w, http.StatusCreated, user)
 	}
 }
 
-func UpdateUser(db *sql.DB) http.HandlerFunc {
+func UpdateUser(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
+		var user User
 
 		urlID := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(urlID)
@@ -87,23 +88,23 @@ func UpdateUser(db *sql.DB) http.HandlerFunc {
 		}
 
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&u); err != nil {
+		if err := decoder.Decode(&user); err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		defer r.Body.Close()
-		u.ID = id
+		user.ID = id
 
-		if err = u.updateUser(db); err != nil {
+		if err = user.Update(db); err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		respond.WithJSON(w, http.StatusOK, u)
+		respond.WithJSON(w, http.StatusOK, user)
 	}
 }
 
-func DeleteUser(db *sql.DB) http.HandlerFunc {
+func DeleteUser(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlID := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(urlID)
@@ -112,8 +113,8 @@ func DeleteUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		u := User{ID: id}
-		if err := u.deleteUser(db); err != nil {
+		user := User{ID: id}
+		if err := user.Delete(db); err != nil {
 			respond.WithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
