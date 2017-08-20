@@ -1,6 +1,7 @@
 package users_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -64,6 +65,57 @@ var _ = Describe("UserHandlers", func() {
 			Expect(result["error"]).To(Equal("User not found"))
 		})
 	})
+
+	Context("CreateUser", func() {
+		It("Responds with a user if successfully created", func() {
+			user, err := json.Marshal(User{Name: "Davos"})
+			Expect(err).NotTo(HaveOccurred())
+
+			req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(user))
+			handler := CreateUser(testDB)
+			handler.ServeHTTP(recorder, req)
+
+			var result User
+			json.NewDecoder(recorder.Body).Decode(&result)
+
+			Expect(recorder.Code).To(Equal(201))
+			Expect(result.ID).To(Equal(4))
+			Expect(result.Name).To(Equal("Davos"))
+		})
+	})
+
+	Context("UpdateUser", func() {
+		It("Changes a user's information and returns the user", func() {
+			user, err := json.Marshal(User{Name: "Lyanna"})
+			Expect(err).NotTo(HaveOccurred())
+
+			req, _ := http.NewRequest("PUT", "/users/1", bytes.NewBuffer(user))
+			router().ServeHTTP(recorder, req)
+
+			var result User
+			json.NewDecoder(recorder.Body).Decode(&result)
+
+			Expect(recorder.Code).To(Equal(200))
+			Expect(result.ID).To(Equal(1))
+			Expect(result.Name).To(Equal("Lyanna"))
+		})
+	})
+
+	Context("DeleteUser", func() {
+		It("Deletes a user's information", func() {
+			req, _ := http.NewRequest("DELETE", "/users/2", nil)
+			router().ServeHTTP(recorder, req)
+
+			var result map[string]string
+			json.NewDecoder(recorder.Body).Decode(&result)
+
+			Expect(recorder.Code).To(Equal(200))
+			Expect(result["result"]).To(Equal("success"))
+
+			users, _ := GetAll(testDB)
+			Expect(len(users)).To(Equal(2))
+		})
+	})
 })
 
 func populateUsers() {
@@ -76,5 +128,7 @@ func populateUsers() {
 func router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/users/{id:[0-9]+}", GetUser(testDB))
+	r.Put("/users/{id:[0-9]+}", UpdateUser(testDB))
+	r.Delete("/users/{id:[0-9]+}", DeleteUser(testDB))
 	return r
 }

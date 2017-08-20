@@ -36,18 +36,14 @@ func (u *User) Create(db *db.DB) error {
 	return nil
 }
 
-func GetUsers(db *db.DB, start, count int) ([]User, error) {
-	rows, err := db.Query("SELECT id, name FROM users LIMIT $1 OFFSET $2",
-		count, start)
-
+func GetAll(db *db.DB) ([]User, error) {
+	rows, err := db.Query("SELECT id, name FROM users")
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	users := []User{}
-
 	for rows.Next() {
 		var u User
 
