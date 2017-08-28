@@ -3,8 +3,8 @@ package users
 import "github.com/rtravitz/culture_knights/db"
 
 type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int    `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 func (u *User) Get(db *db.DB) error {

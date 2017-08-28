@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rtravitz/culture_knights/books"
 	"github.com/rtravitz/culture_knights/db"
+	"github.com/rtravitz/culture_knights/meetings"
 	"github.com/rtravitz/culture_knights/users"
 )
 
@@ -36,5 +37,10 @@ func initializeRoutes(r *chi.Mux, db *db.DB) {
 	r.Route("/books", func(r chi.Router) {
 		r.Post("/", bookEnv.CreateBook)
 		r.Get("/", bookEnv.GetBooks)
+	})
+
+	r.Route("/meetings", func(r chi.Router) {
+		r.Post("/", meetings.CreateMeeting(db))
+		r.Get("/", meetings.GetMeetings(db))
 	})
 }

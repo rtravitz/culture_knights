@@ -3,15 +3,15 @@ package books
 import "github.com/rtravitz/culture_knights/db"
 
 type Book struct {
-	ID            int     `json:"id"`
-	Title         string  `json:"title"`
-	Author        string  `json:"author"`
-	PublishedDate string  `json:"published_date"`
-	PageCount     int     `json:"page_count"`
-	AverageRating float64 `json:"average_rating"`
-	Thumbnail     string  `json:"thumbnail"`
-	Description   string  `json:"description"`
-	Link          string  `json:"link"`
+	ID            int     `json:"id,omitempty"`
+	Title         string  `json:"title,omitempty"`
+	Author        string  `json:"author,omitempty"`
+	PublishedDate string  `json:"published_date,omitempty"`
+	PageCount     int     `json:"page_count,omitempty"`
+	AverageRating float64 `json:"average_rating,omitempty"`
+	Thumbnail     string  `json:"thumbnail,omitempty"`
+	Description   string  `json:"description,omitempty"`
+	Link          string  `json:"link,omitempty"`
 }
 
 func (b *Book) Create(db *db.DB) error {
@@ -23,6 +23,14 @@ func (b *Book) Create(db *db.DB) error {
 	}
 
 	return nil
+}
+
+func (b *Book) Get(db *db.DB) error {
+	return db.QueryRow("SELECT * FROM books WHERE id=$1", b.ID).Scan(
+		&b.ID, &b.Title, &b.Author, &b.PublishedDate,
+		&b.PageCount, &b.AverageRating, &b.Thumbnail,
+		&b.Description, &b.Link,
+	)
 }
 
 func All(db *db.DB) ([]Book, error) {
