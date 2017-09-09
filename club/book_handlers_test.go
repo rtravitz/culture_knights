@@ -1,11 +1,11 @@
-package books_test
+package club_test
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 
-	. "github.com/rtravitz/culture_knights/books"
+	. "github.com/rtravitz/culture_knights/club"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

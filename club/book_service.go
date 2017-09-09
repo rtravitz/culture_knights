@@ -1,4 +1,4 @@
-package books
+package club
 
 import (
 	"encoding/json"

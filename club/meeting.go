@@ -1,26 +1,23 @@
-package meetings
+package club
 
 import (
 	"time"
-
-	"github.com/rtravitz/culture_knights/books"
-	"github.com/rtravitz/culture_knights/users"
 
 	"github.com/rtravitz/culture_knights/db"
 )
 
 type Meeting struct {
-	ID                     int        `json:"id,omitempty"`
-	Book                   books.Book `json:"book,omitempty"`
-	Jesus                  string     `json:"jesus,omitempty"`
-	JesusChooser           users.User `json:"jesus_chooser,omitempty"`
-	JesusExplanation       string     `json:"jesus_explanation,omitempty"`
-	BookChooser            users.User `json:"book_chooser,omitempty"`
-	GoldenRooster          string     `json:"golden_rooster,omitempty"`
-	GoldenRoosterRecipient users.User `json:"golden_rooster_recipient,omitempty"`
-	LeadBalls              string     `json:"lead_balls,omitempty"`
-	LeadBallsRecipient     users.User `json:"lead_balls_recipient,omitempty"`
-	DiscussionDate         time.Time  `json:"discussion_date,omitempty"`
+	ID                     int       `json:"id,omitempty"`
+	Book                   Book      `json:"book,omitempty"`
+	Jesus                  string    `json:"jesus,omitempty"`
+	JesusChooser           User      `json:"jesus_chooser,omitempty"`
+	JesusExplanation       string    `json:"jesus_explanation,omitempty"`
+	BookChooser            User      `json:"book_chooser,omitempty"`
+	GoldenRooster          string    `json:"golden_rooster,omitempty"`
+	GoldenRoosterRecipient User      `json:"golden_rooster_recipient,omitempty"`
+	LeadBalls              string    `json:"lead_balls,omitempty"`
+	LeadBallsRecipient     User      `json:"lead_balls_recipient,omitempty"`
+	DiscussionDate         time.Time `json:"discussion_date,omitempty"`
 }
 
 func (m *Meeting) Create(db *db.DB) error {
@@ -34,7 +31,7 @@ func (m *Meeting) Create(db *db.DB) error {
 	return nil
 }
 
-func (m *Meeting) Get(db *db.DB) error {
+func (m *Meeting) GetMeeting(db *db.DB) error {
 	return db.QueryRow("SELECT * FROM meetings WHERE id=$1", m.ID).Scan(
 		&m.Book.ID, &m.Jesus, &m.JesusChooser.ID, &m.JesusExplanation, &m.BookChooser.ID,
 		&m.GoldenRooster, &m.GoldenRoosterRecipient.ID, &m.LeadBalls, &m.LeadBallsRecipient.ID,
@@ -42,7 +39,7 @@ func (m *Meeting) Get(db *db.DB) error {
 	)
 }
 
-func GetAll(db *db.DB) ([]Meeting, error) {
+func GetAllMeetings(db *db.DB) ([]Meeting, error) {
 	rows, err := db.Query(getAllQuery)
 	if err != nil {
 		return nil, err

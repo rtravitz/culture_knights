@@ -1,4 +1,4 @@
-package books
+package club
 
 import "github.com/rtravitz/culture_knights/db"
 

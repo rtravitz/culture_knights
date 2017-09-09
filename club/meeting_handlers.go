@@ -1,4 +1,4 @@
-package meetings
+package club
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ func CreateMeeting(db *db.DB) http.HandlerFunc {
 
 func GetMeetings(db *db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		meetings, err := GetAll(db)
+		meetings, err := GetAllMeetings(db)
 		if err != nil {
 			log.Println("GetMeetings Handler Err: ", err.Error())
 			respond.WithError(w, http.StatusInternalServerError, "Something went wrong!")

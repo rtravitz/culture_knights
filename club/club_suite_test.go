@@ -1,4 +1,4 @@
-package users_test
+package club_test
 
 import (
 	"os"
@@ -12,9 +12,9 @@ import (
 
 var testDB *db.DB
 
-func TestUsers(t *testing.T) {
+func TestBooks(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Users Suite")
+	RunSpecs(t, "Club Suite")
 }
 
 var _ = BeforeSuite(func() {

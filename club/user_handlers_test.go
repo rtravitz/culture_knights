@@ -1,4 +1,4 @@
-package users_test
+package club_test
 
 import (
 	"bytes"
@@ -7,13 +7,11 @@ import (
 	"net/http/httptest"
 
 	"github.com/go-chi/chi"
-	. "github.com/rtravitz/culture_knights/users"
+	. "github.com/rtravitz/culture_knights/club"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-var recorder *httptest.ResponseRecorder
 
 var _ = Describe("UserHandlers", func() {
 	BeforeEach(func() {
